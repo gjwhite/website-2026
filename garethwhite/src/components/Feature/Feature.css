@@ -14,6 +14,7 @@
 }
 
 /* Solid shadow behind card: same size/radius, appears on hover with tilt + offset, uses hover palette */
+/* Depth: level 0 = back (shapes), level 1 = shadows, level 2 = mid (shapes), level 3 = card, level 4 = front (shapes) */
 .feature__card-shadow {
   position: absolute;
   inset: 0;
@@ -21,7 +22,7 @@
   border-radius: 100px;
   background-color: var(--feature-shadow-color, oklch(0.72 0.24 25));
   opacity: 0;
-  transform: translateZ(-24px) translate(0, 0) rotateX(0deg) rotateY(0deg);
+  transform: translateZ(var(--feature-depth-level-1, -24px)) translate(0, 0) rotateX(0deg) rotateY(0deg);
   transition:
     opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -33,13 +34,13 @@
 .feature-wrapper:hover .feature__card-shadow,
 .feature-wrapper:focus-within .feature__card-shadow {
   opacity: 1;
-  transform: translateZ(-24px)
+  transform: translateZ(var(--feature-depth-level-1, -24px))
     translate(var(--feature-shadow-offset-x, 28px), var(--feature-shadow-offset-y, 28px))
     rotateX(calc(-2deg + var(--tilt-x, 0deg)))
     rotateY(calc(1deg + var(--tilt-y, 0deg)));
 }
 
-/* Second shadow: same style but offset top-left, different color from palette */
+/* Second shadow: same style but offset top-left, different color from palette (also level 1) */
 .feature__card-shadow--top-left {
   background-color: var(--feature-shadow-color-top-left, oklch(0.7 0.22 195));
 }
@@ -48,7 +49,7 @@
 .feature-link:focus-visible .feature__card-shadow--top-left,
 .feature-wrapper:hover .feature__card-shadow--top-left,
 .feature-wrapper:focus-within .feature__card-shadow--top-left {
-  transform: translateZ(-32px)
+  transform: translateZ(var(--feature-depth-level-1, -24px))
     translate(
       calc(-1 * var(--feature-shadow-offset-x, 28px)),
       calc(-1 * var(--feature-shadow-offset-y, 28px))
@@ -75,15 +76,14 @@
   transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Card lift on hover – shapes use --feature-card-lift so they can sit in front */
+/* Card at level 3 on hover */
 .feature-link:hover .feature,
 .feature-link:focus-visible .feature,
 .feature-wrapper:hover .feature,
 .feature-wrapper:focus-within .feature {
-  --feature-card-lift: 56px;
   will-change: transform;
   transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transform: translateZ(var(--feature-card-lift))
+  transform: translateZ(var(--feature-depth-level-3, 56px))
     translate(var(--translate-x, 0), calc(-12px + var(--translate-y, 0)))
     scale(1.03) rotateX(calc(-2deg + var(--tilt-x, 0deg)))
     rotateY(calc(1deg + var(--tilt-y, 0deg)));
@@ -96,8 +96,6 @@
  */
 .feature__hover-shapes {
   --hover-shapes-offset: 200px;
-  /* So shapes on hover sit clearly in front of the card (card uses --feature-card-lift when hovered) */
-  --feature-shapes-hover-z: 96px;
   position: absolute;
   inset: calc(-1 * var(--hover-shapes-offset));
   z-index: 2;
@@ -146,7 +144,7 @@
   border-radius: inherit;
   opacity: 0;
   transform: rotate(var(--hover-shape-rotation, 0deg))
-    scale(calc(0.6 * var(--hover-shape-scale, 1))) translateZ(-32px);
+    scale(calc(0.6 * var(--hover-shape-scale, 1))) translateZ(var(--hover-shape-depth-z, -48px));
   transition:
     opacity 0.22s ease,
     transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -192,10 +190,10 @@
       var(--hover-shape-translate-y, 0)
     )
     scale(calc(1.5 * var(--hover-shape-scale, 1)))
-    translateZ(var(--feature-shapes-hover-z, 96px));
+    translateZ(var(--hover-shape-depth-z, 96px));
 }
 
-/* Lightning stays 30×60 on hover (no scale-up) */
+/* Lightning stays 30×60 on hover (no scale-up), same depth level as other shapes */
 .feature-link:hover
   .feature__hover-shape--lightning
   .feature__hover-shape-inner,
@@ -219,7 +217,7 @@
       var(--hover-shape-translate-x, 0),
       var(--hover-shape-translate-y, 0)
     )
-    scale(1) translateZ(var(--feature-shapes-hover-z, 96px));
+    scale(1) translateZ(var(--hover-shape-depth-z, 96px));
 }
 
 .feature-link:hover .feature__hover-shape-inner::after,
@@ -241,6 +239,7 @@
   z-index: 0;
   overflow: hidden;
   border-radius: inherit;
+  transform: translateZ(0);
 }
 
 .feature__background-image {
@@ -249,7 +248,10 @@
   height: 100%;
 }
 
+/* Title on its own perspective layer, above the card background */
 .feature__name {
   position: relative;
   z-index: 1;
+  transform: translateZ(12px);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }

@@ -21,6 +21,15 @@ import "./Feature.css";
 const TILT_MAX_DEG = 12;
 const TRANSLATE_MAX_PX = 10;
 
+/** Depth levels (translateZ px): 0 = back, 1 = shadows, 2 = mid, 3 = card, 4 = front */
+const FEATURE_DEPTH_LEVEL_PX = {
+  0: -48,
+  1: -24,
+  2: 24,
+  3: 56,
+  4: 96,
+} as const;
+
 type TiltState = {
   tiltX: number;
   tiltY: number;
@@ -138,6 +147,11 @@ export default function Feature({ blok }: FeatureProps) {
           "--translate-y": `${mouseFollow.translateY}px`,
           "--feature-shadow-color": shadowColor,
           "--feature-shadow-color-top-left": shadowColorTopLeft,
+          "--feature-depth-level-0": `${FEATURE_DEPTH_LEVEL_PX[0]}px`,
+          "--feature-depth-level-1": `${FEATURE_DEPTH_LEVEL_PX[1]}px`,
+          "--feature-depth-level-2": `${FEATURE_DEPTH_LEVEL_PX[2]}px`,
+          "--feature-depth-level-3": `${FEATURE_DEPTH_LEVEL_PX[3]}px`,
+          "--feature-depth-level-4": `${FEATURE_DEPTH_LEVEL_PX[4]}px`,
         } as React.CSSProperties
       }
     >
@@ -164,6 +178,7 @@ export default function Feature({ blok }: FeatureProps) {
                   "--hover-shape-width": `${shape.widthPx}px`,
                   "--hover-shape-height": `${shape.heightPx}px`,
                   "--hover-shape-rotation": `${rotationDeg}deg`,
+                  "--hover-shape-depth-z": `${FEATURE_DEPTH_LEVEL_PX[shape.depthLevel]}px`,
                 } as React.CSSProperties
               }
             >

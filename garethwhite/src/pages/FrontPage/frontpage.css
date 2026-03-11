@@ -23,8 +23,21 @@
   width: 100%;
 
   li {
+    position: relative;
+    z-index: 0;
     flex: 1;
     max-width: 200px;
     overflow: visible;
+    transition: filter 0.25s ease;
+  }
+
+  /* Hovered card (and its shadows + shapes) stacks above non-hovered cards */
+  li:hover {
+    z-index: 1;
+  }
+
+  /* When any card is hovered, blur the others */
+  &:has(li:hover) li:not(:hover) {
+    filter: blur(3px);
   }
 }

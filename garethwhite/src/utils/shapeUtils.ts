@@ -44,22 +44,22 @@ export const LIGHTNING_END_DIRECTION_DEG =
   360;
 
 export const NUM_HOVER_SHAPES = 5;
-export const SHAPE_SCALE_MIN = 0.85;
-export const SHAPE_SCALE_MAX = 0.95;
-export const SHAPE_DELAY_MIN_MS = 20;
-export const SHAPE_DELAY_MAX_MS = 80;
+export const SHAPE_SCALE_MIN = 0.9;
+export const SHAPE_SCALE_MAX = 1.01;
+export const SHAPE_DELAY_MIN_MS = 50;
+export const SHAPE_DELAY_MAX_MS = 100;
 export const SHAPE_DIRECTION_MIN_DEG = 0;
 export const SHAPE_DIRECTION_MAX_DEG = 360;
 /** Min/max CSS rotation (deg) for all shapes. Lightning: tip aligned with translation direction, clamped here; others: rotation in this range. */
 export const SHAPE_ROTATION_MIN_DEG = -180;
 export const SHAPE_ROTATION_MAX_DEG = 180;
-export const SHAPE_TRANSLATION_MIN_PX = 120;
-export const SHAPE_TRANSLATION_MAX_PX = 140;
-export const SHAPE_SIZE_MIN_PX = 200;
-export const SHAPE_SIZE_MAX_PX = 240;
+export const SHAPE_TRANSLATION_MIN_PX = 180;
+export const SHAPE_TRANSLATION_MAX_PX = 210;
+export const SHAPE_SIZE_MIN_PX = 110;
+export const SHAPE_SIZE_MAX_PX = 130;
 
 /** Percent (0–100) of shapes that are lightning bolts in the random config. The last shape is always lightning; this chance applies to the rest. */
-export const SHAPE_LIGHTNING_PERCENT = 50;
+export const SHAPE_LIGHTNING_PERCENT = 0;
 
 // -----------------------------------------------------------------------------
 // Types
@@ -83,6 +83,8 @@ export interface HoverShapeConfig {
   isLightning?: boolean;
   /** CSS rotation (deg) for all shapes; from SHAPE_ROTATION_* (lightning: tip-aligned clamped, others: value in range). */
   rotationDeg: number;
+  /** Depth level for perspective stacking: 0 = behind shadows, 2 = between shadows and card, 4 = in front of card. */
+  depthLevel: 0 | 2 | 4;
 }
 
 // -----------------------------------------------------------------------------
@@ -227,6 +229,8 @@ export function getDeterministicShapeConfig(
         ((i * 53 + 17) % (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG + 1));
     const widthPx = isLightning ? SHAPE_LIGHTNING_WIDTH_PX : sizePx;
     const heightPx = isLightning ? SHAPE_LIGHTNING_HEIGHT_PX : sizePx;
+    const depthLevels: (0 | 2 | 4)[] = [0, 2, 4];
+    const depthLevel = depthLevels[(i * 7 + 3) % 3];
     return {
       colorIndex: i % colorCount,
       scale: 1,
@@ -238,6 +242,7 @@ export function getDeterministicShapeConfig(
       heightPx,
       isLightning,
       rotationDeg,
+      depthLevel,
     };
   });
 }
@@ -285,6 +290,9 @@ export function generateHoverShapeConfig(
         Math.random() * (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG);
     const widthPx = isLightning ? SHAPE_LIGHTNING_WIDTH_PX : sizePx;
     const heightPx = isLightning ? SHAPE_LIGHTNING_HEIGHT_PX : sizePx;
+    const depthLevels: (0 | 2 | 4)[] = [0, 2, 4];
+    const depthLevel =
+      depthLevels[Math.floor(Math.random() * depthLevels.length)];
     return {
       colorIndex,
       scale,
@@ -296,6 +304,7 @@ export function generateHoverShapeConfig(
       heightPx,
       isLightning,
       rotationDeg,
+      depthLevel,
     };
   });
 }
