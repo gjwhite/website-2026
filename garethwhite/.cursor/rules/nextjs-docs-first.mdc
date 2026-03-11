@@ -1,0 +1,14 @@
+---
+description: Prefer Next.js docs and recommended libraries over custom implementations
+alwaysApply: true
+---
+
+# Next.js: Docs and Recommended Approaches First
+
+When implementing features in this Next.js project:
+
+1. **Check the Next.js docs first** for the recommended or official way to do it (routing, data fetching, images, view transitions, etc.).
+2. **Prefer ecosystem packages** that are documented or recommended for the App Router (e.g. `next-view-transitions` for View Transitions) instead of building custom solutions that reimplement framework behaviour.
+3. **Only build custom solutions** when the docs don’t cover the use case or when a recommended approach doesn’t fit.
+
+This avoids timing/integration issues and keeps the codebase aligned with how Next.js is designed to be used.

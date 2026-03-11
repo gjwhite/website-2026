@@ -1,0 +1,255 @@
+.feature-link {
+  display: block;
+  overflow: visible;
+}
+
+.feature-wrapper {
+  position: relative;
+  perspective: 500px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+  display: block;
+  overflow: visible;
+  contain: layout style;
+}
+
+/* Solid shadow behind card: same size/radius, appears on hover with tilt + offset, uses hover palette */
+.feature__card-shadow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 100px;
+  background-color: var(--feature-shadow-color, oklch(0.72 0.24 25));
+  opacity: 0;
+  transform: translateZ(-24px) translate(0, 0) rotateX(0deg) rotateY(0deg);
+  transition:
+    opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+}
+
+.feature-link:hover .feature__card-shadow,
+.feature-link:focus-visible .feature__card-shadow,
+.feature-wrapper:hover .feature__card-shadow,
+.feature-wrapper:focus-within .feature__card-shadow {
+  opacity: 1;
+  transform: translateZ(-24px)
+    translate(var(--feature-shadow-offset-x, 28px), var(--feature-shadow-offset-y, 28px))
+    rotateX(calc(-2deg + var(--tilt-x, 0deg)))
+    rotateY(calc(1deg + var(--tilt-y, 0deg)));
+}
+
+/* Second shadow: same style but offset top-left, different color from palette */
+.feature__card-shadow--top-left {
+  background-color: var(--feature-shadow-color-top-left, oklch(0.7 0.22 195));
+}
+
+.feature-link:hover .feature__card-shadow--top-left,
+.feature-link:focus-visible .feature__card-shadow--top-left,
+.feature-wrapper:hover .feature__card-shadow--top-left,
+.feature-wrapper:focus-within .feature__card-shadow--top-left {
+  transform: translateZ(-32px)
+    translate(
+      calc(-1 * var(--feature-shadow-offset-x, 28px)),
+      calc(-1 * var(--feature-shadow-offset-y, 28px))
+    )
+    rotateX(calc(-2deg + var(--tilt-x, 0deg)))
+    rotateY(calc(1deg + var(--tilt-y, 0deg)));
+}
+
+.feature {
+  position: relative;
+  z-index: 1; /* Below .feature__hover-shapes (2) so shapes stay visible when card tilts */
+  background-color: blueviolet;
+  padding: 1rem;
+  border-radius: 100px;
+  width: 100%;
+  height: 40dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  transform-style: preserve-3d;
+  transform: translateZ(0) rotateX(0) rotateY(0);
+  transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Card lift on hover – shapes use --feature-card-lift so they can sit in front */
+.feature-link:hover .feature,
+.feature-link:focus-visible .feature,
+.feature-wrapper:hover .feature,
+.feature-wrapper:focus-within .feature {
+  --feature-card-lift: 56px;
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: translateZ(var(--feature-card-lift))
+    translate(var(--translate-x, 0), calc(-12px + var(--translate-y, 0)))
+    scale(1.03) rotateX(calc(-2deg + var(--tilt-x, 0deg)))
+    rotateY(calc(1deg + var(--tilt-y, 0deg)));
+}
+
+/*
+ * Card is width: 100% (max 200px from .features-list li), height: 40dvh.
+ * Shapes container extends --hover-shapes-offset outside the card.
+ * z-index above the card so when the card tilts (and its box grows) the shapes stay visible.
+ */
+.feature__hover-shapes {
+  --hover-shapes-offset: 200px;
+  /* So shapes on hover sit clearly in front of the card (card uses --feature-card-lift when hovered) */
+  --feature-shapes-hover-z: 96px;
+  position: absolute;
+  inset: calc(-1 * var(--hover-shapes-offset));
+  z-index: 2;
+  pointer-events: none;
+  border-radius: calc(100px + var(--hover-shapes-offset));
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+/* Pulse: opacity only (cheap, composited). Avoid animating filter – it triggers repaint. */
+@keyframes feature-shape-pulse {
+  0%,
+  100% {
+    opacity: 0.92;
+  }
+  50% {
+    opacity: 0.98;
+  }
+}
+
+/* Shape container: transform (with tilt) updates every frame on mouse move; no opacity animation here so pulse isn’t tied to it */
+.feature__hover-shape {
+  position: absolute;
+  inset: var(--hover-shapes-offset);
+  border-radius: inherit;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(4deg + var(--tilt-x, 0deg)))
+    rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.12s ease-out;
+}
+
+/* Inner: size from config (width/height match clip-path) so rotation is correct. Centered. */
+.feature__hover-shape-inner {
+  position: absolute;
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: var(--hover-shape-width, 180px);
+  height: var(--hover-shape-height, 180px);
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 260px;
+  max-height: 260px;
+  margin-left: calc(var(--hover-shape-width, 180px) / -2);
+  margin-top: calc(var(--hover-shape-height, 180px) / -2);
+  border-radius: inherit;
+  opacity: 0;
+  transform: rotate(var(--hover-shape-rotation, 0deg))
+    scale(calc(0.6 * var(--hover-shape-scale, 1))) translateZ(-32px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--hover-shape-delay, 0ms);
+}
+
+.feature__hover-shape-inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--hover-shape-color, #ff6b6b);
+  opacity: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  transition:
+    opacity 0.22s ease,
+    filter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: var(--hover-shape-delay, 0ms);
+  pointer-events: none;
+}
+
+/* Trigger: mouse over card or wrapper. Shapes show and pulse the whole time (tilt only changes their angle). */
+.feature-link:hover .feature__hover-shape,
+.feature-link:focus-visible .feature__hover-shape,
+.feature-wrapper:hover .feature__hover-shape,
+.feature-wrapper:focus-within .feature__hover-shape,
+.feature-wrapper:has(.feature:hover) .feature__hover-shape,
+.feature-wrapper:has(.feature:focus-visible) .feature__hover-shape {
+  transform: rotateX(calc(2deg + var(--tilt-x, 0deg)))
+    rotateY(var(--tilt-y, 0deg));
+}
+
+.feature-link:hover .feature__hover-shape-inner,
+.feature-link:focus-visible .feature__hover-shape-inner,
+.feature-wrapper:hover .feature__hover-shape-inner,
+.feature-wrapper:focus-within .feature__hover-shape-inner,
+.feature-wrapper:has(.feature:hover) .feature__hover-shape-inner,
+.feature-wrapper:has(.feature:focus-visible) .feature__hover-shape-inner {
+  opacity: 1;
+  transform: rotate(var(--hover-shape-rotation, 0deg))
+    translate(
+      var(--hover-shape-translate-x, 0),
+      var(--hover-shape-translate-y, 0)
+    )
+    scale(calc(1.5 * var(--hover-shape-scale, 1)))
+    translateZ(var(--feature-shapes-hover-z, 96px));
+}
+
+/* Lightning stays 30×60 on hover (no scale-up) */
+.feature-link:hover
+  .feature__hover-shape--lightning
+  .feature__hover-shape-inner,
+.feature-link:focus-visible
+  .feature__hover-shape--lightning
+  .feature__hover-shape-inner,
+.feature-wrapper:hover
+  .feature__hover-shape--lightning
+  .feature__hover-shape-inner,
+.feature-wrapper:focus-within
+  .feature__hover-shape--lightning
+  .feature__hover-shape-inner,
+.feature-wrapper:has(.feature:hover)
+  .feature__hover-shape--lightning
+  .feature__hover-shape-inner,
+.feature-wrapper:has(.feature:focus-visible)
+  .feature__hover-shape--lightning
+  .feature__hover-shape-inner {
+  transform: rotate(var(--hover-shape-rotation, 0deg))
+    translate(
+      var(--hover-shape-translate-x, 0),
+      var(--hover-shape-translate-y, 0)
+    )
+    scale(1) translateZ(var(--feature-shapes-hover-z, 96px));
+}
+
+.feature-link:hover .feature__hover-shape-inner::after,
+.feature-link:focus-visible .feature__hover-shape-inner::after,
+.feature-wrapper:hover .feature__hover-shape-inner::after,
+.feature-wrapper:focus-within .feature__hover-shape-inner::after,
+.feature-wrapper:has(.feature:hover) .feature__hover-shape-inner::after,
+.feature-wrapper:has(.feature:focus-visible)
+  .feature__hover-shape-inner::after {
+  opacity: 0.95;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+  animation: feature-shape-pulse 2.5s ease-in-out infinite;
+  animation-delay: var(--hover-shape-delay, 0ms);
+}
+
+.feature__background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.feature__background-image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.feature__name {
+  position: relative;
+  z-index: 1;
+}

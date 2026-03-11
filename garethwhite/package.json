@@ -1,0 +1,32 @@
+{
+  "name": "garethwhite",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "dev": "next dev --turbopack --experimental-https",
+    "storyblok:login": "storyblok login",
+    "storyblok:pull": "storyblok components pull",
+    "storyblok:types": "storyblok components pull && storyblok types generate && node scripts/copy-storyblok-types.mjs",
+    "storyblok:types:generate": "storyblok types generate"
+  },
+  "dependencies": {
+    "@storyblok/react": "^6.0.0",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "dotenv": "^16",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "storyblok": "latest",
+    "typescript": "^5"
+  }
+}
