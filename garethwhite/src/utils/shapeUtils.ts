@@ -25,8 +25,8 @@ export const POLYGON_POINT_MIN_PERCENT = 30;
 export const NUM_HOVER_SHAPES = 10;
 export const SHAPE_SCALE_MIN = 0.9;
 export const SHAPE_SCALE_MAX = 1.01;
-export const SHAPE_DELAY_MIN_MS = 50;
-export const SHAPE_DELAY_MAX_MS = 100;
+export const SHAPE_DELAY_MIN_MS = 40;
+export const SHAPE_DELAY_MAX_MS = 120;
 export const SHAPE_DIRECTION_MIN_DEG = 0;
 export const SHAPE_DIRECTION_MAX_DEG = 360;
 /** Offset (deg) for deterministic spread so directions don’t always start at 0. */
@@ -48,7 +48,7 @@ export const SHAPE_ORGANIC_POINTS_MIN = 3;
 export const SHAPE_ORGANIC_POINTS_MAX = 12;
 
 /** Percent (0–100) of shapes that are organic blobs in the random config. The last shape is always organic; this chance applies to the rest. */
-export const SHAPE_ORGANIC_PERCENT = 30;
+export const SHAPE_ORGANIC_PERCENT = 40;
 
 // -----------------------------------------------------------------------------
 // Types
@@ -72,8 +72,8 @@ export interface HoverShapeConfig {
   isOrganic?: boolean;
   /** CSS rotation (deg) for all shapes; from SHAPE_ROTATION_*. */
   rotationDeg: number;
-  /** Depth level for perspective stacking: 0 = behind shadows, 2 = between shadows and card, 4 = in front of card. */
-  depthLevel: 0 | 2 | 4;
+  /** Depth level for perspective stacking: 0 = behind shadows, 2 = mid, 4 = front of card, 5–6 = above card. */
+  depthLevel: 0 | 2 | 4 | 5 | 6;
 }
 
 // -----------------------------------------------------------------------------
@@ -337,8 +337,8 @@ export function getDeterministicShapeConfig(
       ((i * 53 + 17) % (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG + 1));
     const widthPx = sizePx;
     const heightPx = sizePx;
-    const depthLevels: (0 | 2 | 4)[] = [0, 2, 4];
-    const depthLevel = depthLevels[(i * 7 + 3) % 3];
+    const depthLevels: (0 | 2 | 4 | 5 | 6)[] = [0, 2, 4, 5, 6];
+    const depthLevel = depthLevels[(i * 7 + 3) % 5];
     return {
       colorIndex: i % colorCount,
       scale: 1,
@@ -404,7 +404,7 @@ export function generateHoverShapeConfig(
       Math.random() * (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG);
     const widthPx = sizePx;
     const heightPx = sizePx;
-    const depthLevels: (0 | 2 | 4)[] = [0, 2, 4];
+    const depthLevels: (0 | 2 | 4 | 5 | 6)[] = [0, 2, 4, 5, 6];
     const depthLevel =
       depthLevels[Math.floor(Math.random() * depthLevels.length)];
     return {

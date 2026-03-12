@@ -21,13 +21,15 @@ import "./Feature.css";
 const TILT_MAX_DEG = 5;
 const TRANSLATE_MAX_PX = 10;
 
-/** Depth levels (translateZ px): 0 = back, 1 = shadows, 2 = mid, 3 = card, 4 = front */
+/** Depth levels (translateZ px): 0 = back, 1 = shadows, 2 = mid, 3 = card, 4 = front, 5–6 = above card */
 const FEATURE_DEPTH_LEVEL_PX = {
   0: -48,
   1: -24,
   2: 24,
   3: 56,
   4: 96,
+  5: 130,
+  6: 165,
 } as const;
 
 type TiltState = {
@@ -153,6 +155,8 @@ export default function Feature({ blok }: FeatureProps) {
           "--feature-depth-level-2": `${FEATURE_DEPTH_LEVEL_PX[2]}px`,
           "--feature-depth-level-3": `${FEATURE_DEPTH_LEVEL_PX[3]}px`,
           "--feature-depth-level-4": `${FEATURE_DEPTH_LEVEL_PX[4]}px`,
+          "--feature-depth-level-5": `${FEATURE_DEPTH_LEVEL_PX[5]}px`,
+          "--feature-depth-level-6": `${FEATURE_DEPTH_LEVEL_PX[6]}px`,
         } as React.CSSProperties
       }
     >
