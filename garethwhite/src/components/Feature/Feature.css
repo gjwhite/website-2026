@@ -22,7 +22,8 @@
   border-radius: 100px;
   background-color: var(--feature-shadow-color, oklch(0.72 0.24 25));
   opacity: 0;
-  transform: translateZ(var(--feature-depth-level-1, -24px)) translate(0, 0) rotateX(0deg) rotateY(0deg);
+  transform: translateZ(var(--feature-depth-level-1, -24px)) translate(0, 0)
+    rotateX(0deg) rotateY(0deg);
   transition:
     opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -35,9 +36,12 @@
 .feature-wrapper:focus-within .feature__card-shadow {
   opacity: 1;
   transform: translateZ(var(--feature-depth-level-1, -24px))
-    translate(var(--feature-shadow-offset-x, 28px), var(--feature-shadow-offset-y, 28px))
-    rotateX(calc(-2deg + var(--tilt-x, 0deg)))
-    rotateY(calc(1deg + var(--tilt-y, 0deg)));
+    translate(
+      var(--feature-shadow-offset-x, 28px),
+      var(--feature-shadow-offset-y, 28px)
+    )
+    rotateX(calc(-1deg + var(--tilt-x, 0deg)))
+    rotateY(calc(0.5deg + var(--tilt-y, 0deg)));
 }
 
 /* Second shadow: same style but offset top-left, different color from palette (also level 1) */
@@ -54,8 +58,8 @@
       calc(-1 * var(--feature-shadow-offset-x, 28px)),
       calc(-1 * var(--feature-shadow-offset-y, 28px))
     )
-    rotateX(calc(-2deg + var(--tilt-x, 0deg)))
-    rotateY(calc(1deg + var(--tilt-y, 0deg)));
+    rotateX(calc(-1deg + var(--tilt-x, 0deg)))
+    rotateY(calc(0.5deg + var(--tilt-y, 0deg)));
 }
 
 .feature {
@@ -85,8 +89,8 @@
   transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform: translateZ(var(--feature-depth-level-3, 56px))
     translate(var(--translate-x, 0), calc(-12px + var(--translate-y, 0)))
-    scale(1.03) rotateX(calc(-2deg + var(--tilt-x, 0deg)))
-    rotateY(calc(1deg + var(--tilt-y, 0deg)));
+    scale(1.03) rotateX(calc(-1deg + var(--tilt-x, 0deg)))
+    rotateY(calc(0.5deg + var(--tilt-y, 0deg)));
 }
 
 /*
@@ -100,7 +104,7 @@
   inset: calc(-1 * var(--hover-shapes-offset));
   z-index: 2;
   pointer-events: none;
-  border-radius: calc(100px + var(--hover-shapes-offset));
+  /* border-radius: calc(100px + var(--hover-shapes-offset)); */
   overflow: hidden;
   transform-style: preserve-3d;
 }
@@ -120,9 +124,9 @@
 .feature__hover-shape {
   position: absolute;
   inset: var(--hover-shapes-offset);
-  border-radius: inherit;
+  /* border-radius: inherit; */
   transform-style: preserve-3d;
-  transform: rotateX(calc(4deg + var(--tilt-x, 0deg)))
+  transform: rotateX(calc(2deg + var(--tilt-x, 0deg)))
     rotateY(var(--tilt-y, 0deg));
   transition: transform 0.12s ease-out;
 }
@@ -141,10 +145,11 @@
   max-height: 260px;
   margin-left: calc(var(--hover-shape-width, 180px) / -2);
   margin-top: calc(var(--hover-shape-height, 180px) / -2);
-  border-radius: inherit;
+  /* border-radius: inherit; */
   opacity: 0;
   transform: rotate(var(--hover-shape-rotation, 0deg))
-    scale(calc(0.6 * var(--hover-shape-scale, 1))) translateZ(var(--hover-shape-depth-z, -48px));
+    scale(calc(0.6 * var(--hover-shape-scale, 1)))
+    translateZ(var(--hover-shape-depth-z, -48px));
   transition:
     opacity 0.22s ease,
     transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -155,7 +160,6 @@
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: inherit;
   background-color: var(--hover-shape-color, #ff6b6b);
   opacity: 0;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
@@ -173,7 +177,7 @@
 .feature-wrapper:focus-within .feature__hover-shape,
 .feature-wrapper:has(.feature:hover) .feature__hover-shape,
 .feature-wrapper:has(.feature:focus-visible) .feature__hover-shape {
-  transform: rotateX(calc(2deg + var(--tilt-x, 0deg)))
+  transform: rotateX(calc(1deg + var(--tilt-x, 0deg)))
     rotateY(var(--tilt-y, 0deg));
 }
 
@@ -191,33 +195,6 @@
     )
     scale(calc(1.5 * var(--hover-shape-scale, 1)))
     translateZ(var(--hover-shape-depth-z, 96px));
-}
-
-/* Lightning stays 30×60 on hover (no scale-up), same depth level as other shapes */
-.feature-link:hover
-  .feature__hover-shape--lightning
-  .feature__hover-shape-inner,
-.feature-link:focus-visible
-  .feature__hover-shape--lightning
-  .feature__hover-shape-inner,
-.feature-wrapper:hover
-  .feature__hover-shape--lightning
-  .feature__hover-shape-inner,
-.feature-wrapper:focus-within
-  .feature__hover-shape--lightning
-  .feature__hover-shape-inner,
-.feature-wrapper:has(.feature:hover)
-  .feature__hover-shape--lightning
-  .feature__hover-shape-inner,
-.feature-wrapper:has(.feature:focus-visible)
-  .feature__hover-shape--lightning
-  .feature__hover-shape-inner {
-  transform: rotate(var(--hover-shape-rotation, 0deg))
-    translate(
-      var(--hover-shape-translate-x, 0),
-      var(--hover-shape-translate-y, 0)
-    )
-    scale(1) translateZ(var(--hover-shape-depth-z, 96px));
 }
 
 .feature-link:hover .feature__hover-shape-inner::after,

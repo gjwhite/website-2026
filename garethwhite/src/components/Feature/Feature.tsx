@@ -18,7 +18,7 @@ import {
 } from "@/utils/shapeUtils";
 import "./Feature.css";
 
-const TILT_MAX_DEG = 12;
+const TILT_MAX_DEG = 5;
 const TRANSLATE_MAX_PX = 10;
 
 /** Depth levels (translateZ px): 0 = back, 1 = shadows, 2 = mid, 3 = card, 4 = front */
@@ -161,18 +161,18 @@ export default function Feature({ blok }: FeatureProps) {
       <div className="feature__hover-shapes" aria-hidden>
         {shapeConfig.map((shape, i) => {
           const rad = (shape.directionDeg * Math.PI) / 180;
-          const translateX = shape.translationDistancePx * Math.sin(rad);
-          const translateY = -shape.translationDistancePx * Math.cos(rad);
+          const translateX = Math.round(shape.translationDistancePx * Math.sin(rad) * 100) / 100;
+          const translateY = Math.round(-shape.translationDistancePx * Math.cos(rad) * 100) / 100;
           const rotationDeg = shape.rotationDeg;
           return (
             <div
               key={i}
-              className={`feature__hover-shape${shape.isLightning ? " feature__hover-shape--lightning" : ""}`}
+              className={`feature__hover-shape${shape.isOrganic ? " feature__hover-shape--organic" : ""}`}
               style={
                 {
                   "--hover-shape-color":
                     hoverColors[shape.colorIndex % hoverColors.length],
-                  "--hover-shape-scale": shape.scale,
+                  "--hover-shape-scale": `${shape.scale}`,
                   "--hover-shape-delay": `${Math.round(shape.delayMs)}ms`,
                   "--hover-shape-translate-x": `${translateX}px`,
                   "--hover-shape-translate-y": `${translateY}px`,

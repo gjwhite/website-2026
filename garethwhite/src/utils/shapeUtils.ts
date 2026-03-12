@@ -8,58 +8,47 @@
 // -----------------------------------------------------------------------------
 
 /** Minimum span (in % of clip-path box) so the visible shape never looks tiny. */
-export const POLYGON_MIN_SPAN_PERCENT = 66;
+export const POLYGON_MIN_SPAN_PERCENT = 10;
 
 /** Minimum span of the original point cloud (before normalization). Stops needle-thin triangles. */
-export const POLYGON_MIN_ORIGINAL_SPAN_PERCENT = 28;
+export const POLYGON_MIN_ORIGINAL_SPAN_PERCENT = 20;
 
-/** Lightning bolt (zigzag) clip-path. Size must match SHAPE_LIGHTNING_WIDTH/HEIGHT_PX so rotation is correct. */
-export const SHAPE_CLIP_PATH_LIGHTNING =
-  "polygon(22% 0, 73% 0, 49% 36%, 71% 49%, 25% 100%, 35% 58%, 8% 50%)";
+/** Min bbox aspect ratio (short/long). Below this we scale the short axis so the triangle isn’t needle-thin. */
+export const POLYGON_MIN_ASPECT_RATIO = 1;
 
-/** Lightning shape dimensions (px); clip-path is defined for this aspect ratio. */
-export const SHAPE_LIGHTNING_WIDTH_PX = 30;
-export const SHAPE_LIGHTNING_HEIGHT_PX = 60;
+/** Each point (x, y) has x + y in [SUM_MIN, SUM_MAX] so points sit in a band; keeps triangles chunky. */
+export const POLYGON_POINT_SUM_MIN_PERCENT = 90;
+export const POLYGON_POINT_SUM_MAX_PERCENT = 200;
+/** Each coordinate must be at least this (%). */
+export const POLYGON_POINT_MIN_PERCENT = 30;
 
-/** "The end" of the lightning bolt (point 5 in the polygon). Update these if you move point 5 in SHAPE_CLIP_PATH_LIGHTNING. */
-const LIGHTNING_END_X_PERCENT = 25;
-const LIGHTNING_END_Y_PERCENT = 100;
-const LIGHTNING_CENTER_PERCENT = 50;
-
-/**
- * Direction (deg) that "the end" points by default. Uses same convention as shape
- * directionDeg: 0 = up, 90 = right, 180 = down, 270 = left. Derived from the tip
- * (LIGHTNING_END_*_PERCENT) vs center (50, 50). atan2 gives 0° = right, so we
- * subtract 90° to get 0° = up so the rotation in Feature aligns the tip with the
- * translation direction (pointing away from the card).
- */
-export const LIGHTNING_END_DIRECTION_DEG =
-  (Math.atan2(
-    LIGHTNING_END_X_PERCENT - LIGHTNING_CENTER_PERCENT,
-    LIGHTNING_CENTER_PERCENT - LIGHTNING_END_Y_PERCENT,
-  ) *
-    (180 / Math.PI) -
-    90 +
-    360) %
-  360;
-
-export const NUM_HOVER_SHAPES = 5;
+export const NUM_HOVER_SHAPES = 10;
 export const SHAPE_SCALE_MIN = 0.9;
 export const SHAPE_SCALE_MAX = 1.01;
 export const SHAPE_DELAY_MIN_MS = 50;
 export const SHAPE_DELAY_MAX_MS = 100;
 export const SHAPE_DIRECTION_MIN_DEG = 0;
 export const SHAPE_DIRECTION_MAX_DEG = 360;
-/** Min/max CSS rotation (deg) for all shapes. Lightning: tip aligned with translation direction, clamped here; others: rotation in this range. */
-export const SHAPE_ROTATION_MIN_DEG = -180;
-export const SHAPE_ROTATION_MAX_DEG = 180;
+/** Offset (deg) for deterministic spread so directions don’t always start at 0. */
+export const SHAPE_DIRECTION_SPREAD_OFFSET_DEG = 27;
+/** Min/max CSS rotation (deg) for all shapes. */
+export const SHAPE_ROTATION_MIN_DEG = -10;
+export const SHAPE_ROTATION_MAX_DEG = 10;
 export const SHAPE_TRANSLATION_MIN_PX = 180;
 export const SHAPE_TRANSLATION_MAX_PX = 210;
-export const SHAPE_SIZE_MIN_PX = 110;
-export const SHAPE_SIZE_MAX_PX = 130;
+export const SHAPE_SIZE_MIN_PX = 220;
+export const SHAPE_SIZE_MAX_PX = 380;
 
-/** Percent (0–100) of shapes that are lightning bolts in the random config. The last shape is always lightning; this chance applies to the rest. */
-export const SHAPE_LIGHTNING_PERCENT = 0;
+/** Organic (bean) shape size range (px). Path is scaled to fit this box. */
+export const SHAPE_ORGANIC_SIZE_MIN_PX = 8;
+export const SHAPE_ORGANIC_SIZE_MAX_PX = 22;
+
+/** Min/max number of points for organic blob (fewer = simpler blob, more = more detailed). */
+export const SHAPE_ORGANIC_POINTS_MIN = 3;
+export const SHAPE_ORGANIC_POINTS_MAX = 12;
+
+/** Percent (0–100) of shapes that are organic blobs in the random config. The last shape is always organic; this chance applies to the rest. */
+export const SHAPE_ORGANIC_PERCENT = 30;
 
 // -----------------------------------------------------------------------------
 // Types
@@ -79,9 +68,9 @@ export interface HoverShapeConfig {
   widthPx: number;
   /** Height in px; matches clip-path bounding box so rotation looks correct. */
   heightPx: number;
-  /** True when shape is lightning (fixed 30×60 from SHAPE_LIGHTNING_*_PX). */
-  isLightning?: boolean;
-  /** CSS rotation (deg) for all shapes; from SHAPE_ROTATION_* (lightning: tip-aligned clamped, others: value in range). */
+  /** True when shape uses the organic (bean-like) path clip-path. */
+  isOrganic?: boolean;
+  /** CSS rotation (deg) for all shapes; from SHAPE_ROTATION_*. */
   rotationDeg: number;
   /** Depth level for perspective stacking: 0 = behind shadows, 2 = between shadows and card, 4 = in front of card. */
   depthLevel: 0 | 2 | 4;
@@ -119,9 +108,17 @@ export function randomPolygonClipPath(seed?: number): string {
         })()
       : () => Math.random();
 
+  const sumMin = POLYGON_POINT_SUM_MIN_PERCENT;
+  const sumMax = POLYGON_POINT_SUM_MAX_PERCENT;
+  const minCoord = POLYGON_POINT_MIN_PERCENT;
   const points: number[][] = [];
   for (let i = 0; i < 3; i++) {
-    points.push([Math.round(random() * 100), Math.round(random() * 100)]);
+    const sum = sumMin + random() * (sumMax - sumMin);
+    const xMin = Math.max(minCoord, sum - 100);
+    const xMax = Math.min(100, sum - minCoord);
+    const x = xMin + random() * (xMax - xMin);
+    const y = sum - x;
+    points.push([Math.round(x), Math.round(y)]);
   }
   const sorted = points
     .map((p) => ({ p, angle: Math.atan2(p[1] - 50, p[0] - 50) }))
@@ -140,7 +137,7 @@ export function randomPolygonClipPath(seed?: number): string {
   const centerY = (minY + maxY) / 2;
   const scaleX = spanX >= minOriginal ? 1 : minOriginal / spanX;
   const scaleY = spanY >= minOriginal ? 1 : minOriginal / spanY;
-  const expanded = sorted.map(([x, y]) => [
+  let expanded = sorted.map(([x, y]) => [
     centerX + (x - centerX) * scaleX,
     centerY + (y - centerY) * scaleY,
   ]);
@@ -150,6 +147,26 @@ export function randomPolygonClipPath(seed?: number): string {
   maxY = Math.max(...expanded.map(([, y]) => y));
   spanX = maxX - minX || 1;
   spanY = maxY - minY || 1;
+
+  const minAspect = POLYGON_MIN_ASPECT_RATIO;
+  const ratio = spanX < spanY ? spanX / spanY : spanY / spanX;
+  if (ratio < minAspect) {
+    const centerX2 = (minX + maxX) / 2;
+    const centerY2 = (minY + maxY) / 2;
+    const scaleShort =
+      spanX < spanY ? (minAspect * spanY) / spanX : (minAspect * spanX) / spanY;
+    expanded = expanded.map(([x, y]) => {
+      const sx = spanX < spanY ? centerX2 + (x - centerX2) * scaleShort : x;
+      const sy = spanY < spanX ? centerY2 + (y - centerY2) * scaleShort : y;
+      return [sx, sy];
+    });
+    minX = Math.min(...expanded.map(([x]) => x));
+    maxX = Math.max(...expanded.map(([x]) => x));
+    minY = Math.min(...expanded.map(([, y]) => y));
+    maxY = Math.max(...expanded.map(([, y]) => y));
+    spanX = maxX - minX || 1;
+    spanY = maxY - minY || 1;
+  }
 
   const targetSpan = POLYGON_MIN_SPAN_PERCENT;
   const pad = (100 - targetSpan) / 2;
@@ -172,16 +189,103 @@ export function randomEllipseClipPath(): string {
 }
 
 /**
+ * Organic blob: N points in 0–100 space (N between min and max), then smooth cubic
+ * Bezier through them. numPoints is chosen in [SHAPE_ORGANIC_POINTS_MIN, SHAPE_ORGANIC_POINTS_MAX];
+ * when seed is provided it’s deterministic, otherwise random.
+ */
+function organicPathPointsIn100(seed?: number): {
+  points: [number, number][];
+  numPoints: number;
+} {
+  const random =
+    seed !== undefined
+      ? (() => {
+          const next = seededRandom(seed);
+          return () => next() / 0xffffffff;
+        })()
+      : () => Math.random();
+
+  const range = SHAPE_ORGANIC_POINTS_MAX - SHAPE_ORGANIC_POINTS_MIN + 1;
+  const numPoints =
+    seed !== undefined
+      ? SHAPE_ORGANIC_POINTS_MIN + (Math.abs(seed) % range)
+      : SHAPE_ORGANIC_POINTS_MIN + Math.floor(random() * range);
+
+  const cx = 50;
+  const cy = 50;
+  const baseRadius = 38;
+  const radiusJitter = 12;
+  const angleJitter = 0.4;
+
+  const points: [number, number][] = [];
+  for (let i = 0; i < numPoints; i++) {
+    const t = (2 * Math.PI * i) / numPoints + (random() - 0.5) * angleJitter;
+    const r = baseRadius + (random() - 0.5) * radiusJitter;
+    const x = Math.max(5, Math.min(95, cx + r * Math.cos(t)));
+    const y = Math.max(5, Math.min(95, cy + r * Math.sin(t)));
+    points.push([x, y]);
+  }
+
+  return { points, numPoints };
+}
+
+/** Tension for smooth cubic Bezier between points (0–1; ~0.17 is smooth). */
+const ORGANIC_BEZIER_TENSION = 1 / 6;
+
+/**
+ * Randomised organic (bean-like) clip-path using path(). Number of points is in
+ * [SHAPE_ORGANIC_POINTS_MIN, SHAPE_ORGANIC_POINTS_MAX]. Coordinates scaled to
+ * sizePx. Pass seed for deterministic SSR.
+ */
+export function randomOrganicClipPath(sizePx: number, seed?: number): string {
+  const { points: pts, numPoints: N } = organicPathPointsIn100(seed);
+  const scale = sizePx / 100;
+  const round = (v: number) => Math.round(v * scale * 100) / 100;
+
+  const segs: string[] = [];
+  for (let i = 0; i < N; i++) {
+    const prev = pts[(i - 1 + N) % N];
+    const curr = pts[i];
+    const next = pts[(i + 1) % N];
+    const next2 = pts[(i + 2) % N];
+
+    const cp1x = curr[0] + (next[0] - prev[0]) * ORGANIC_BEZIER_TENSION;
+    const cp1y = curr[1] + (next[1] - prev[1]) * ORGANIC_BEZIER_TENSION;
+    const cp2x = next[0] - (next2[0] - curr[0]) * ORGANIC_BEZIER_TENSION;
+    const cp2y = next[1] - (next2[1] - curr[1]) * ORGANIC_BEZIER_TENSION;
+
+    const x1 = round(curr[0]);
+    const y1 = round(curr[1]);
+    const c1 = round(cp1x);
+    const c2 = round(cp1y);
+    const c3 = round(cp2x);
+    const c4 = round(cp2y);
+    const x2 = round(next[0]);
+    const y2 = round(next[1]);
+
+    if (i === 0) {
+      segs.push(`M ${x1},${y1}`);
+    }
+    segs.push(`C ${c1},${c2} ${c3},${c4} ${x2},${y2}`);
+  }
+  return `path('${segs.join(" ")} Z')`;
+}
+
+/**
  * Translation distance (px) inversely related to shape size:
  * smaller shape → larger translation, larger shape → smaller translation.
- * Clamps size to SHAPE_SIZE_* range so result stays within SHAPE_TRANSLATION_*.
+ * Uses optional min/max for the size range (e.g. SHAPE_ORGANIC_SIZE_* for organic shapes).
  */
-function translationFromSizePx(sizePx: number): number {
-  const sizeRange = SHAPE_SIZE_MAX_PX - SHAPE_SIZE_MIN_PX;
+function translationFromSizePx(
+  sizePx: number,
+  sizeMin = SHAPE_SIZE_MIN_PX,
+  sizeMax = SHAPE_SIZE_MAX_PX,
+): number {
+  const sizeRange = sizeMax - sizeMin;
   const tRange = SHAPE_TRANSLATION_MAX_PX - SHAPE_TRANSLATION_MIN_PX;
   const normalized = Math.max(
     0,
-    Math.min(1, (sizePx - SHAPE_SIZE_MIN_PX) / sizeRange),
+    Math.min(1, sizeRange > 0 ? (sizePx - sizeMin) / sizeRange : 0),
   );
   return Math.round(SHAPE_TRANSLATION_MAX_PX - normalized * tRange);
 }
@@ -207,28 +311,32 @@ export function getDeterministicShapeConfig(
   colorCount: number,
   numShapes = NUM_HOVER_SHAPES,
 ): HoverShapeConfig[] {
+  const sectorWidth = 360 / numShapes;
   return Array.from({ length: numShapes }, (_, i) => {
-    const directionDeg = (i * 97 + 23) % 360;
-    const sizePx =
-      SHAPE_SIZE_MIN_PX +
-      ((i * 41 + 11) % (SHAPE_SIZE_MAX_PX - SHAPE_SIZE_MIN_PX + 1));
-    const translationDistancePx = translationFromSizePx(sizePx);
-    const isLightning = i === numShapes - 1;
-    const clipPath = isLightning
-      ? SHAPE_CLIP_PATH_LIGHTNING
-      : randomPolygonClipPath(i);
-    const rotationDeg = isLightning
-      ? Math.max(
-          SHAPE_ROTATION_MIN_DEG,
-          Math.min(
-            SHAPE_ROTATION_MAX_DEG,
-            directionDeg - LIGHTNING_END_DIRECTION_DEG,
-          ),
+    const directionDeg =
+      (sectorWidth * i + SHAPE_DIRECTION_SPREAD_OFFSET_DEG) % 360;
+    const isOrganic = i === numShapes - 1;
+    const sizePx = isOrganic
+      ? SHAPE_ORGANIC_SIZE_MIN_PX +
+        ((i * 41 + 11) %
+          (SHAPE_ORGANIC_SIZE_MAX_PX - SHAPE_ORGANIC_SIZE_MIN_PX + 1))
+      : SHAPE_SIZE_MIN_PX +
+        ((i * 41 + 11) % (SHAPE_SIZE_MAX_PX - SHAPE_SIZE_MIN_PX + 1));
+    const translationDistancePx = isOrganic
+      ? translationFromSizePx(
+          sizePx,
+          SHAPE_ORGANIC_SIZE_MIN_PX,
+          SHAPE_ORGANIC_SIZE_MAX_PX,
         )
-      : SHAPE_ROTATION_MIN_DEG +
-        ((i * 53 + 17) % (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG + 1));
-    const widthPx = isLightning ? SHAPE_LIGHTNING_WIDTH_PX : sizePx;
-    const heightPx = isLightning ? SHAPE_LIGHTNING_HEIGHT_PX : sizePx;
+      : translationFromSizePx(sizePx);
+    const clipPath = isOrganic
+      ? randomOrganicClipPath(sizePx, i)
+      : randomPolygonClipPath(i);
+    const rotationDeg =
+      SHAPE_ROTATION_MIN_DEG +
+      ((i * 53 + 17) % (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG + 1));
+    const widthPx = sizePx;
+    const heightPx = sizePx;
     const depthLevels: (0 | 2 | 4)[] = [0, 2, 4];
     const depthLevel = depthLevels[(i * 7 + 3) % 3];
     return {
@@ -240,14 +348,14 @@ export function getDeterministicShapeConfig(
       translationDistancePx,
       widthPx,
       heightPx,
-      isLightning,
+      isOrganic,
       rotationDeg,
       depthLevel,
     };
   });
 }
 
-/** Random per-instance hover shape config (call client-side only, e.g. in useEffect). Each shape gets its own random directionDeg and translationDistancePx. */
+/** Random per-instance hover shape config (call client-side only, e.g. in useEffect). Directions are stratified (one per sector) to avoid clumping. */
 export function generateHoverShapeConfig(
   colorCount: number,
   numShapes = NUM_HOVER_SHAPES,
@@ -259,12 +367,23 @@ export function generateHoverShapeConfig(
     ),
   ).slice(0, numShapes);
 
+  const sectorWidth = 360 / numShapes;
+  const sectorIndices = shuffle(Array.from({ length: numShapes }, (_, j) => j));
+
   return Array.from({ length: numShapes }, (_, i) => {
     const colorIndex = colorIndices[i];
-    const isLightning =
-      i === numShapes - 1 || Math.random() < SHAPE_LIGHTNING_PERCENT / 100;
-    const clipPath = isLightning
-      ? SHAPE_CLIP_PATH_LIGHTNING
+    const isOrganic =
+      i === numShapes - 1 || Math.random() < SHAPE_ORGANIC_PERCENT / 100;
+    const sizePx = isOrganic
+      ? SHAPE_ORGANIC_SIZE_MIN_PX +
+        Math.round(
+          Math.random() *
+            (SHAPE_ORGANIC_SIZE_MAX_PX - SHAPE_ORGANIC_SIZE_MIN_PX),
+        )
+      : SHAPE_SIZE_MIN_PX +
+        Math.round(Math.random() * (SHAPE_SIZE_MAX_PX - SHAPE_SIZE_MIN_PX));
+    const clipPath = isOrganic
+      ? randomOrganicClipPath(sizePx)
       : randomPolygonClipPath();
     const scale =
       SHAPE_SCALE_MIN + Math.random() * (SHAPE_SCALE_MAX - SHAPE_SCALE_MIN);
@@ -272,24 +391,19 @@ export function generateHoverShapeConfig(
       SHAPE_DELAY_MIN_MS +
       Math.random() * (SHAPE_DELAY_MAX_MS - SHAPE_DELAY_MIN_MS);
     const directionDeg =
-      SHAPE_DIRECTION_MIN_DEG +
-      Math.random() * (SHAPE_DIRECTION_MAX_DEG - SHAPE_DIRECTION_MIN_DEG + 32);
-    const sizePx =
-      SHAPE_SIZE_MIN_PX +
-      Math.round(Math.random() * (SHAPE_SIZE_MAX_PX - SHAPE_SIZE_MIN_PX));
-    const translationDistancePx = translationFromSizePx(sizePx);
-    const rotationDeg = isLightning
-      ? Math.max(
-          SHAPE_ROTATION_MIN_DEG,
-          Math.min(
-            SHAPE_ROTATION_MAX_DEG,
-            directionDeg - LIGHTNING_END_DIRECTION_DEG,
-          ),
+      sectorWidth * sectorIndices[i] + Math.random() * sectorWidth;
+    const translationDistancePx = isOrganic
+      ? translationFromSizePx(
+          sizePx,
+          SHAPE_ORGANIC_SIZE_MIN_PX,
+          SHAPE_ORGANIC_SIZE_MAX_PX,
         )
-      : SHAPE_ROTATION_MIN_DEG +
-        Math.random() * (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG);
-    const widthPx = isLightning ? SHAPE_LIGHTNING_WIDTH_PX : sizePx;
-    const heightPx = isLightning ? SHAPE_LIGHTNING_HEIGHT_PX : sizePx;
+      : translationFromSizePx(sizePx);
+    const rotationDeg =
+      SHAPE_ROTATION_MIN_DEG +
+      Math.random() * (SHAPE_ROTATION_MAX_DEG - SHAPE_ROTATION_MIN_DEG);
+    const widthPx = sizePx;
+    const heightPx = sizePx;
     const depthLevels: (0 | 2 | 4)[] = [0, 2, 4];
     const depthLevel =
       depthLevels[Math.floor(Math.random() * depthLevels.length)];
@@ -302,7 +416,7 @@ export function generateHoverShapeConfig(
       translationDistancePx,
       widthPx,
       heightPx,
-      isLightning,
+      isOrganic,
       rotationDeg,
       depthLevel,
     };
