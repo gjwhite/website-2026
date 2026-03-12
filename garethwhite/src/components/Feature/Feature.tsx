@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { SbBlokData, storyblokEditable } from "@storyblok/react/rsc";
 import type { FeatureStoryblok } from "@/types/storyblok-component-types";
 import { storyblokLink } from "@/utils/storyblokLink";
@@ -101,10 +101,6 @@ export default function Feature({ blok }: FeatureProps) {
   const [shapeConfig, setShapeConfig] = useState(() =>
     getDeterministicShapeConfig(HOVER_COLORS.length),
   );
-  // Optional: apply random shapes after mount for visual variety (client-only)
-  useEffect(() => {
-    setShapeConfig(generateHoverShapeConfig(HOVER_COLORS.length));
-  }, []);
 
   const { href, target } = storyblokLink(blok.link);
   const image = blok.image as StoryblokAssetLike | undefined;
@@ -129,6 +125,10 @@ export default function Feature({ blok }: FeatureProps) {
     ? ((blok as { hoverColor?: string[] }).hoverColor as HoverColor[])
     : HOVER_COLORS;
 
+  const onMouseEnter = useCallback(() => {
+    setShapeConfig(generateHoverShapeConfig(hoverColors.length));
+  }, [hoverColors.length]);
+
   const shadowColor =
     hoverColors[(shapeConfig[0]?.colorIndex ?? 0) % hoverColors.length];
   const shadowColorTopLeft =
@@ -137,6 +137,7 @@ export default function Feature({ blok }: FeatureProps) {
   const article = (
     <div
       className="feature-wrapper"
+      onMouseEnter={onMouseEnter}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       style={
