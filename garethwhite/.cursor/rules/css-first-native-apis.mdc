@@ -1,0 +1,19 @@
+---
+description: Prefer CSS-first solutions and native APIs where possible
+alwaysApply: true
+---
+
+# CSS-First and Native APIs
+
+When implementing UI and behaviour in this project:
+
+1. **CSS-first where possible**
+   - Put layout, sizing, and presentation in CSS (stylesheet or CSS modules), not inline `style` or JS-driven styles.
+   - Use CSS custom properties (e.g. `--hero-object-position`) for the few dynamic values that must come from JS, so presentation rules stay in the stylesheet.
+   - Prefer selectors, media queries, container queries, and `:has()` over duplicating logic in JavaScript.
+
+2. **Native APIs where possible**
+   - Prefer native browser APIs (e.g. `fetch`, `IntersectionObserver`, `ResizeObserver`, `requestAnimationFrame`, native form validation) over extra libraries when they meet the need.
+   - Use platform features (e.g. native `<dialog>`, `<details>`, CSS scroll-snap) before adding custom or third-party implementations.
+
+Only reach for inline styles, JS-driven layout, or non-native libraries when the native/CSS approach doesn’t cover the use case.

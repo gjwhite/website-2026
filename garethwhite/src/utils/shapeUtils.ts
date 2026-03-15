@@ -233,6 +233,227 @@ function organicPathPointsIn100(seed?: number): {
 const ORGANIC_BEZIER_TENSION = 1 / 6;
 
 /**
+ * Organic blob as a polygon clip-path in percentage (0–100%). Uses the same
+ * point set as randomOrganicClipPath but outputs polygon() so it scales with
+ * the container. Points are normalized so the shape fills the box (margin
+ * controlled by fillMinPercent/fillMaxPercent). Pass seed for deterministic SSR.
+ */
+export function organicClipPathPolygon(
+  seed?: number,
+  fillMinPercent = 2,
+  fillMaxPercent = 98,
+): string {
+  const { points } = organicPathPointsIn100(seed);
+  if (points.length < 3) return "none";
+  const minX = Math.min(...points.map(([x]) => x));
+  const maxX = Math.max(...points.map(([x]) => x));
+  const minY = Math.min(...points.map(([, y]) => y));
+  const maxY = Math.max(...points.map(([, y]) => y));
+  const spanX = maxX - minX || 1;
+  const spanY = maxY - minY || 1;
+  const fillSpan = (fillMaxPercent - fillMinPercent) / 100;
+  const normalized = points.map(([x, y]) => {
+    const nx = fillMinPercent + ((x - minX) / spanX) * fillSpan * 100;
+    const ny = fillMinPercent + ((y - minY) / spanY) * fillSpan * 100;
+    return [nx, ny];
+  });
+  return `polygon(${normalized.map(([x, y]) => `${x}% ${y}%`).join(", ")})`;
+}
+
+/**
+ * Rectangle with the given aspect ratio (width/height), centered in 0–100%,
+ * with each edge slightly wobbly. Uses sine-based waves for smooth curves.
+ * Good for hero images: same aspect as the image, soft organic outline.
+ */
+export function wobblyRectClipPath(
+  aspectRatio: number,
+  options?: {
+    wobblePercent?: number;
+    pointsPerEdge?: number;
+    seed?: number;
+  },
+): string {
+  const {
+    wobblePercent = 1.5,
+    pointsPerEdge = 20,
+    seed = 0,
+  } = options ?? {};
+  const next = seededRandom(seed);
+  const rand = () => next() / 0xffffffff;
+
+  const r = Math.max(0.1, aspectRatio);
+  let w: number, h: number;
+  if (r >= 1) {
+    w = 100;
+    h = 100 / r;
+  } else {
+    h = 100;
+    w = 100 * r;
+  }
+  const left = (100 - w) / 2;
+  const right = (100 + w) / 2;
+  const top = (100 - h) / 2;
+  const bottom = (100 + h) / 2;
+
+  const n = Math.max(2, pointsPerEdge);
+  const wave = (i: number, phase: number) =>
+    Math.sin((i / (n - 1)) * Math.PI * 3 + phase) * wobblePercent;
+
+  const points: [number, number][] = [];
+  const phases = [rand() * 2 * Math.PI, rand() * 2 * Math.PI, rand() * 2 * Math.PI, rand() * 2 * Math.PI];
+
+  for (let i = 0; i < n; i++) {
+    points.push([left + (w * i) / (n - 1), top + wave(i, phases[0])]);
+  }
+  for (let i = 0; i < n; i++) {
+    points.push([right + wave(i, phases[1]), top + (h * i) / (n - 1)]);
+  }
+  for (let i = 0; i < n; i++) {
+    points.push([right - (w * i) / (n - 1), bottom - wave(i, phases[2])]);
+  }
+  for (let i = 0; i < n; i++) {
+    points.push([left - wave(i, phases[3]), bottom - (h * i) / (n - 1)]);
+  }
+
+  return `polygon(${points.map(([x, y]) => `${x}% ${y}%`).join(", ")})`;
+}
+
+/**
+ * Smooth cubic Bezier through points (same tension as organic blob).
+ * Returns path segment: M first point, then C for each segment to the next point.
+ */
+function smoothBezierPath(
+  pts: [number, number][],
+  tension: number,
+  fmt: (x: number, y: number) => string,
+): string[] {
+  if (pts.length < 2) return [];
+  const N = pts.length;
+  const parts: string[] = [];
+  for (let i = 0; i < N - 1; i++) {
+    const prev = pts[i - 1] ?? pts[i];
+    const curr = pts[i];
+    const next = pts[i + 1];
+    const next2 = pts[i + 2] ?? next;
+    const cp1x = curr[0] + (next[0] - prev[0]) * tension;
+    const cp1y = curr[1] + (next[1] - prev[1]) * tension;
+    const cp2x = next[0] - (next2[0] - curr[0]) * tension;
+    const cp2y = next[1] - (next2[1] - curr[1]) * tension;
+    parts.push(`C ${fmt(cp1x, cp1y)} ${fmt(cp2x, cp2y)} ${fmt(next[0], next[1])}`);
+  }
+  return parts;
+}
+
+/**
+ * Rectangle in 0–1 with wobbly rounded corners: like border-radius but each
+ * corner is a smooth, multi-point curvy arc (Bezier). Small corner radius
+ * keeps most of the image visible. Path goes clockwise.
+ */
+function raggedRectPath(
+  aspectRatio: number,
+  options: {
+    cornerRadius: number;
+    pointsPerCorner: number;
+    wobble: number;
+    wavesPerCorner: number;
+    seed: number;
+  },
+): string {
+  const { cornerRadius, pointsPerCorner, wobble, wavesPerCorner, seed } = options;
+  const next = seededRandom(seed);
+  const rand = () => (next() / 0xffffffff) * 2 * Math.PI;
+
+  const r = Math.max(0.1, aspectRatio);
+  let left: number, right: number, top: number, bottom: number;
+  if (r >= 1) {
+    left = 0;
+    right = 1;
+    top = (1 - 1 / r) / 2;
+    bottom = (1 + 1 / r) / 2;
+  } else {
+    top = 0;
+    bottom = 1;
+    left = (1 - r) / 2;
+    right = (1 + r) / 2;
+  }
+
+  const rad = Math.min(cornerRadius, (right - left) / 4, (bottom - top) / 4);
+  const fmt = (x: number, y: number) => `${x.toFixed(4)},${y.toFixed(4)}`;
+
+  const pathParts: string[] = [];
+  pathParts.push(`M ${fmt(left + rad, top)}`);
+  pathParts.push(`L ${fmt(right - rad, top)}`);
+
+  const corners: { cx: number; cy: number; angleStart: number; angleEnd: number }[] = [
+    { cx: right, cy: top, angleStart: Math.PI, angleEnd: Math.PI / 2 },
+    { cx: right, cy: bottom, angleStart: Math.PI / 2, angleEnd: 0 },
+    { cx: left, cy: bottom, angleStart: 0, angleEnd: -Math.PI / 2 },
+    { cx: left, cy: top, angleStart: -Math.PI / 2, angleEnd: Math.PI },
+  ];
+
+  const edgesAfterCorner = [
+    `L ${fmt(right, bottom - rad)}`,
+    `L ${fmt(left + rad, bottom)}`,
+    `L ${fmt(left, top + rad)}`,
+  ];
+
+  for (let c = 0; c < corners.length; c++) {
+    const corner = corners[c];
+    const { cx, cy, angleStart, angleEnd } = corner;
+    const n = Math.max(2, pointsPerCorner);
+    const phase = rand();
+    const points: [number, number][] = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const angle = angleStart + t * (angleEnd - angleStart);
+      const wave = Math.sin((i / n) * wavesPerCorner * 2 * Math.PI + phase);
+      const rr = rad * (1 + wobble * wave);
+      points.push([cx + rr * Math.cos(angle), cy + rr * Math.sin(angle)]);
+    }
+    const curveParts = smoothBezierPath(points, ORGANIC_BEZIER_TENSION, fmt);
+    pathParts.push(...curveParts);
+    if (c < 3) pathParts.push(edgesAfterCorner[c]);
+  }
+
+  pathParts.push("Z");
+  return pathParts.join(" ");
+}
+
+/**
+ * SVG mask as a data URL: rectangle (same aspect ratio as image) with
+ * wobbly rounded corners (curvy Bezier arcs). Use with mask-image and
+ * mask-size: 100% 100%. Deterministic per seed.
+ */
+export function raggedRectMaskDataUrl(
+  aspectRatio: number,
+  options?: {
+    cornerRadius?: number;
+    pointsPerCorner?: number;
+    wobble?: number;
+    wavesPerCorner?: number;
+    seed?: number;
+  },
+): string {
+  const {
+    cornerRadius = 0.045,
+    pointsPerCorner = 12,
+    wobble = 0.25,
+    wavesPerCorner = 5,
+    seed = 42,
+  } = options ?? {};
+  const d = raggedRectPath(aspectRatio, {
+    cornerRadius,
+    pointsPerCorner,
+    wobble,
+    wavesPerCorner,
+    seed,
+  });
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="${d}" fill="white"/></svg>`;
+  const encoded = encodeURIComponent(svg).replace(/'/g, "%27");
+  return `url("data:image/svg+xml,${encoded}")`;
+}
+
+/**
  * Randomised organic (bean-like) clip-path using path(). Number of points is in
  * [SHAPE_ORGANIC_POINTS_MIN, SHAPE_ORGANIC_POINTS_MAX]. Coordinates scaled to
  * sizePx. Pass seed for deterministic SSR.

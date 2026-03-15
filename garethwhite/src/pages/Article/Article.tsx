@@ -4,46 +4,54 @@ import {
   StoryblokServerComponent,
 } from "@storyblok/react/rsc";
 import type { ArticleStoryblok } from "@/types/storyblok-component-types";
+import Image from "next/image";
 import {
   type StoryblokAssetLike,
   storyblokImageUrl,
   storyblokAssetObjectPosition,
 } from "@/utils/storyblokImage";
-import ArticleHeroImage from "@/pages/Article/ArticleHeroImage";
 import "./Article.css";
 
 interface ArticleProps {
   blok?: ArticleStoryblok;
 }
 
+const HERO_MAX_DIMENSION = 2460;
+
 export default function Article({ blok }: ArticleProps) {
   if (!blok) return null;
   const image = blok.feature_image as StoryblokAssetLike | undefined;
-  const imageSrc = storyblokImageUrl(image, { width: 2460, height: 590 });
+  const imgWidth = image?.width ?? 800;
+  const imgHeight = image?.height ?? 600;
+  const maxEdge = Math.min(Math.max(imgWidth, imgHeight), HERO_MAX_DIMENSION);
+  const imageSrc = storyblokImageUrl(image, { width: maxEdge, height: 0 });
   const objectPosition = storyblokAssetObjectPosition(image, {
-    width: image?.width ?? 800,
-    height: image?.height ?? 450,
+    width: imgWidth,
+    height: imgHeight,
   });
   return (
     <section {...storyblokEditable(blok as SbBlokData)}>
       <header className="article__header">
-        <h1 className="article__title">{blok.title ?? "Article"}</h1>
-        <div className="article__image-wrapper">
-          {imageSrc ? (
-            <ArticleHeroImage
+        {imageSrc ? (
+          <div className="article__image">
+            <Image
               src={imageSrc}
               alt={image?.alt ?? blok.title ?? "Article image"}
-              width={2460}
-              height={590}
-              sizes="(max-width: 1024px) 100vw, 1230px"
-              style={{ objectFit: "cover", objectPosition }}
+              width={imgWidth}
+              height={imgHeight}
+              sizes="(max-width: 1024px) 100vw, 80dvw"
+              priority
+              style={{ objectPosition }}
             />
-          ) : null}
-        </div>
+            <h1 className="article__title">{blok.title ?? "Article"}</h1>
+          </div>
+        ) : null}
       </header>
 
       {blok.components?.map((nestedBlok) => (
-        <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
+        <div className="article__content">
+          <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
+        </div>
       ))}
     </section>
   );
