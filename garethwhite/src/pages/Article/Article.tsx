@@ -5,6 +5,7 @@ import {
 } from "@storyblok/react/rsc";
 import type { ArticleStoryblok } from "@/types/storyblok-component-types";
 import Image from "next/image";
+import { Link } from "next-view-transitions";
 import {
   type StoryblokAssetLike,
   storyblokImageUrl,
@@ -31,28 +32,35 @@ export default function Article({ blok }: ArticleProps) {
   });
   return (
     <section {...storyblokEditable(blok as SbBlokData)}>
-      <header className="article__header">
-        {imageSrc ? (
-          <div className="article__image">
-            <Image
-              src={imageSrc}
-              alt={image?.alt ?? blok.title ?? "Article image"}
-              width={imgWidth}
-              height={imgHeight}
-              sizes="(max-width: 1024px) 100vw, 80dvw"
-              priority
-              style={{ objectPosition }}
-            />
-            <h1 className="article__title">{blok.title ?? "Article"}</h1>
-          </div>
-        ) : null}
-      </header>
+      <div className="load-animate">
+        <nav className="article__nav" aria-label="Back">
+          <Link href="/" className="article__back">
+            Back
+          </Link>
+        </nav>
+        <header className="article__header">
+          {imageSrc ? (
+            <div className="article__image">
+              <Image
+                src={imageSrc}
+                alt={image?.alt ?? blok.title ?? "Article image"}
+                width={imgWidth}
+                height={imgHeight}
+                sizes="(max-width: 1024px) 100vw, 80dvw"
+                priority
+                style={{ objectPosition }}
+              />
+              <h1 className="article__title">{blok.title ?? "Article"}</h1>
+            </div>
+          ) : null}
+        </header>
 
-      {blok.components?.map((nestedBlok) => (
-        <div className="article__content">
-          <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
-        </div>
-      ))}
+        {blok.components?.map((nestedBlok) => (
+          <div key={nestedBlok._uid} className="article__content">
+            <StoryblokServerComponent blok={nestedBlok} />
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

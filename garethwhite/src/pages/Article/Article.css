@@ -4,6 +4,25 @@
   gap: 1rem;
 }
 
+.article__nav {
+  padding: clamp(1rem, 2vw, 2rem) 0 0;
+  width: 70dvw;
+  margin-inline: auto;
+}
+
+.article__back {
+  display: inline-block;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.article__back:hover {
+  opacity: 1;
+}
+
 .article__header {
   display: flex;
   flex-direction: column;

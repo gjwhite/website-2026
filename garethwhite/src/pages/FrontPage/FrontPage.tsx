@@ -14,7 +14,7 @@ export default function FrontPage({ blok }: FrontPageProps) {
     <main {...storyblokEditable(blok as SbBlokData)}>
       <section className="features-section">
         <h1>{blok.title ?? "Front Page"}</h1>
-        <ul className="features-list">
+        <ul className="features-list load-animate">
           {blok.features?.map((item, i) => {
             if (typeof item === "string") return null;
             const key = item.uuid ?? item.content?._uid ?? i;

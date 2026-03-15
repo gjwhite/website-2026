@@ -1,5 +1,9 @@
+:root {
+  --page-bg: #16151d;
+}
+
 html,
 body {
-  background-color: #16151d;
+  background-color: var(--page-bg);
   color: #ffffff;
 }

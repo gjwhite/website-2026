@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { useCallback, useRef, useState } from "react";
 import { SbBlokData, storyblokEditable } from "@storyblok/react/rsc";
 import type { FeatureStoryblok } from "@/types/storyblok-component-types";
