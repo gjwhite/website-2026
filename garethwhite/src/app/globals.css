@@ -1,4 +1,5 @@
 @import "@/styles/reset.css";
+@import "@/styles/variables.css";
 @import "@/styles/settings.css";
 
 /* Three diagonal strips at 45°; hidden until view transition runs (see body.view-transition-active) */
@@ -161,23 +162,63 @@ body.view-transition-active .swipe-layer {
 }
 
 /* Start after swipe ends (~1.15s); first item 1.25s, then +100ms each */
-.load-animate > *:nth-child(1) { animation-delay: 1250ms; }
-.load-animate > *:nth-child(2) { animation-delay: 1350ms; }
-.load-animate > *:nth-child(3) { animation-delay: 1450ms; }
-.load-animate > *:nth-child(4) { animation-delay: 1550ms; }
-.load-animate > *:nth-child(5) { animation-delay: 1650ms; }
-.load-animate > *:nth-child(6) { animation-delay: 1750ms; }
-.load-animate > *:nth-child(7) { animation-delay: 1850ms; }
-.load-animate > *:nth-child(8) { animation-delay: 1950ms; }
-.load-animate > *:nth-child(9) { animation-delay: 2050ms; }
-.load-animate > *:nth-child(10) { animation-delay: 2150ms; }
-.load-animate > *:nth-child(11) { animation-delay: 2250ms; }
-.load-animate > *:nth-child(12) { animation-delay: 2350ms; }
-.load-animate > *:nth-child(13) { animation-delay: 2450ms; }
-.load-animate > *:nth-child(14) { animation-delay: 2550ms; }
-.load-animate > *:nth-child(15) { animation-delay: 2650ms; }
-.load-animate > *:nth-child(16) { animation-delay: 2750ms; }
-.load-animate > *:nth-child(17) { animation-delay: 2850ms; }
-.load-animate > *:nth-child(18) { animation-delay: 2950ms; }
-.load-animate > *:nth-child(19) { animation-delay: 3050ms; }
-.load-animate > *:nth-child(20) { animation-delay: 3150ms; }
+.load-animate > *:nth-child(1) {
+  animation-delay: 1250ms;
+}
+.load-animate > *:nth-child(2) {
+  animation-delay: 1350ms;
+}
+.load-animate > *:nth-child(3) {
+  animation-delay: 1450ms;
+}
+.load-animate > *:nth-child(4) {
+  animation-delay: 1550ms;
+}
+.load-animate > *:nth-child(5) {
+  animation-delay: 1650ms;
+}
+.load-animate > *:nth-child(6) {
+  animation-delay: 1750ms;
+}
+.load-animate > *:nth-child(7) {
+  animation-delay: 1850ms;
+}
+.load-animate > *:nth-child(8) {
+  animation-delay: 1950ms;
+}
+.load-animate > *:nth-child(9) {
+  animation-delay: 2050ms;
+}
+.load-animate > *:nth-child(10) {
+  animation-delay: 2150ms;
+}
+.load-animate > *:nth-child(11) {
+  animation-delay: 2250ms;
+}
+.load-animate > *:nth-child(12) {
+  animation-delay: 2350ms;
+}
+.load-animate > *:nth-child(13) {
+  animation-delay: 2450ms;
+}
+.load-animate > *:nth-child(14) {
+  animation-delay: 2550ms;
+}
+.load-animate > *:nth-child(15) {
+  animation-delay: 2650ms;
+}
+.load-animate > *:nth-child(16) {
+  animation-delay: 2750ms;
+}
+.load-animate > *:nth-child(17) {
+  animation-delay: 2850ms;
+}
+.load-animate > *:nth-child(18) {
+  animation-delay: 2950ms;
+}
+.load-animate > *:nth-child(19) {
+  animation-delay: 3050ms;
+}
+.load-animate > *:nth-child(20) {
+  animation-delay: 3150ms;
+}

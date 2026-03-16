@@ -24,41 +24,51 @@
 }
 
 .article__header {
-  display: flex;
+  /* display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  */
   padding: clamp(
     1rem,
     calc(1rem + (4rem - 1rem) * (100vw - 20rem) / (80rem - 20rem)),
     4rem
   );
+  float: left;
+  shape-outside: border-box;
+  border-radius: var(--radius-max);
+  margin-inline-end: 1.5rem;
+  margin-block-end: 1rem;
 }
 
 /* Smooth scale 1rem → 4rem: linear between 20rem and 80rem viewport (same as 5vw clamped) */
 .article__image {
   position: relative;
-  display: grid;
+  /* display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 1fr auto;
   justify-content: center;
   align-items: center;
   width: 70dvw;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 4 / 3; */
+  height: 80dvh;
+  width: 42dvh;
   filter: drop-shadow(
     0 0 1px var(--article-image-border-color, rgba(255, 255, 255, 1))
   );
 
   img {
-    mask-image: url("/4x3-mask.svg");
+    /* mask-image: url("/4x3-mask.svg");
     mask-size: cover;
     mask-repeat: no-repeat;
     mask-position: center;
-    object-fit: cover;
+    
     grid-column: 1 / -1;
-    grid-row: 1 / -1;
+    grid-row: 1 / -1; */
+    object-fit: cover;
     width: 100%;
     height: 100%;
+    border-radius: var(--radius-max);
   }
 }
 
