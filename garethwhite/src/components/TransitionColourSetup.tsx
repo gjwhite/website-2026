@@ -24,7 +24,7 @@ export function TransitionColourSetup() {
   const searchParams = useSearchParams();
 
   useLayoutEffect(() => {
-    const preview = searchParams.get("preview-swipe") != null;
+    const preview = searchParams?.get("preview-swipe") != null;
     document.body.classList.toggle(PREVIEW_CLASS, preview);
     return () => document.body.classList.remove(PREVIEW_CLASS);
   }, [searchParams]);

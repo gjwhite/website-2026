@@ -1,0 +1,29 @@
+.picture {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  place-content: center;
+  max-width: 100%;
+  margin: 0;
+}
+
+.picture--empty {
+  min-height: 4rem;
+  border-radius: var(--radius-max, 1rem);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.picture__frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.picture__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(85dvh, 56rem);
+  object-fit: cover;
+}

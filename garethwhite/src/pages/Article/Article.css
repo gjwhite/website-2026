@@ -85,7 +85,25 @@
   margin-right: -42px;
 }
 
+.article__header:has(.article__title--no-hero) {
+  float: none;
+  width: 70dvw;
+  max-width: 100%;
+  margin-inline: auto;
+  margin-inline-end: auto;
+}
+
+.article__title--no-hero {
+  width: 100%;
+  margin: 0;
+  padding-top: 0.5rem;
+}
+
 .article__content {
   width: 70dvw;
   margin-inline: auto;
+}
+
+.article__content > * + * {
+  margin-top: 1rem;
 }

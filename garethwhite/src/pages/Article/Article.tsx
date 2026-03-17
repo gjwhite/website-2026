@@ -34,8 +34,8 @@ export default function Article({ blok }: ArticleProps) {
     <section {...storyblokEditable(blok as SbBlokData)}>
       <div className="load-animate">
         <nav className="article__nav" aria-label="Back">
-          <Link href="/" className="article__back">
-            Back
+          <Link href="/archive" className="article__back">
+            View all
           </Link>
         </nav>
         <header className="article__header">
@@ -52,14 +52,19 @@ export default function Article({ blok }: ArticleProps) {
               />
               <h1 className="article__title">{blok.title ?? "Article"}</h1>
             </div>
-          ) : null}
+          ) : (
+            <h1 className="article__title article__title--no-hero">
+              {blok.title ?? "Article"}
+            </h1>
+          )}
         </header>
-
-        {blok.components?.map((nestedBlok) => (
-          <div key={nestedBlok._uid} className="article__content">
-            <StoryblokServerComponent blok={nestedBlok} />
-          </div>
-        ))}
+        <div className="article__content">
+          {blok.components?.map((nestedBlok) => (
+            <div key={nestedBlok._uid} className="article__item">
+              <StoryblokServerComponent blok={nestedBlok} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
