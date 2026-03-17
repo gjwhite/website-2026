@@ -2,6 +2,64 @@
 @import "@/styles/variables.css";
 @import "@/styles/settings.css";
 
+/* Wrapper per layer: shows during view transition; contains static trails + animated strip. Trails use view-transition-name so they’re captured into the overlay and visible (document z-index -1 would hide them otherwise). */
+.swipe-layer-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+
+body.view-transition-active .swipe-layer-wrap {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Preview mode: ?preview-swipe in URL shows layers static at halfway through animation for tweaking */
+body.swipe-layers-preview .swipe-layer-wrap {
+  visibility: visible;
+  opacity: 1;
+  z-index: 9998;
+}
+body.swipe-layers-preview .swipe-layer {
+  visibility: visible;
+  opacity: 1;
+  /* Halfway: exit goes translate(0,0) scaleY(1) → translate(100vmax,-100vmax) scaleY(6.67) */
+  transform: rotate(45deg) translate(50vmax, -50vmax) scaleY(3.835);
+}
+body.swipe-layers-preview .swipe-layer--colour-1 {
+  transform: rotate(45deg) translate(50vmax, -50vmax) scaleY(3.835);
+}
+body.swipe-layers-preview .swipe-layer--colour-2 {
+  transform: rotate(45deg) translate(50vmax, -50vmax) scaleY(3.835);
+}
+
+/* Trail wrapper: same width and height as the swipe layer (300dvw × 30dvh). Offsets are applied to each shape’s left/top. */
+.swipe-layer__trails {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(0); /* parent .swipe-layer is already 45deg */
+  transform-origin: center center;
+  z-index: 0;
+}
+
+.swipe-layer__trail-shape {
+  position: absolute;
+  pointer-events: none;
+  /* left, top from offset; clip-path, width, height from component */
+}
+
+.swipe-layer-wrap--colour-1 .swipe-layer__trail-shape {
+  background: var(--transition-accent-1, transparent);
+}
+.swipe-layer-wrap--colour-2 .swipe-layer__trail-shape {
+  background: var(--transition-accent-2, transparent);
+}
+
 /* Three diagonal strips at 45°; hidden until view transition runs (see body.view-transition-active) */
 .swipe-layer {
   position: fixed;
@@ -11,7 +69,7 @@
   height: 30dvh;
   margin-left: -150dvw;
   margin-top: -15dvh;
-  z-index: -1;
+  z-index: 1;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -82,17 +140,17 @@ body.view-transition-active .swipe-layer {
   ::view-transition-group(root) {
     z-index: 0;
   }
-  /* Allow swipe layers to move/scale off without being clipped */
+  /* Swipe strips (with trails inside) above everything */
   ::view-transition-group(swipe-layer-3) {
-    z-index: 1;
+    z-index: 9998;
     overflow: visible;
   }
   ::view-transition-group(swipe-layer-2) {
-    z-index: 2;
+    z-index: 9999;
     overflow: visible;
   }
   ::view-transition-group(swipe-layer-1) {
-    z-index: 3;
+    z-index: 10000;
     overflow: visible;
   }
 

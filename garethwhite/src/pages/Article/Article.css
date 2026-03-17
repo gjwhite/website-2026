@@ -73,16 +73,16 @@
 }
 
 .article__title {
-  grid-column: 3;
-  grid-row: 2;
-  place-self: end;
-  position: relative;
   z-index: 1;
-  font-size: 1rem;
-  font-weight: 700;
   color: var(--color-text);
-  width: 100%;
-  padding-left: 42px;
+  grid-area: 2 / 3;
+  place-self: end;
+  width: 80%;
+  font-size: 2.6rem;
+  font-weight: 700;
+  position: relative;
+  margin-top: -84px;
+  margin-right: -42px;
 }
 
 .article__content {
